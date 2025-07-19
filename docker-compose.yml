@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypass
+      - POSTGRES_DB=mydb
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "3000:3000"
+
+  app:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://myuser:mypass@db:5432/mydb
+      - PYTHONPATH=/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  pg-data:
