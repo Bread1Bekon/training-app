@@ -1,0 +1,12 @@
+[project]
+name = "training-app"
+version = "0.0.1"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "asyncpg",
+    "python-dotenv",
+    "alembic",
+    "pydantic",
+]
