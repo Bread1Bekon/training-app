@@ -13,4 +13,4 @@ ENV PYTHONPATH="/app"
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["uv", "run", "uvicorn", "app.main:app"]
+ENTRYPOINT ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
