@@ -41,6 +41,7 @@ async def startup_event():
     async with engine.begin() as conn:
         await conn.run_sync(UserDB.metadata.create_all)
 
+
 # --- POST /users ---
 @app.post("/users", response_model=UserOut, status_code=201)
 async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -49,6 +50,7 @@ async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
     return new_user
+
 
 # --- DELETE /users/{user_id} ---
 @app.delete("/users/{user_id}", status_code=204)
