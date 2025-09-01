@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from app.api import root_router
 
 from app.db import engine
-from app.models import UserDB
+from app.models.user import UserDB
 
 # Create the tables (run only once)
 app = FastAPI(debug=True)
