@@ -14,7 +14,7 @@ class UserRepository:
         return user
 
     async def get_user_by_id(self, user_id: int) -> UserDB:
-        result = await self.db.execute(select(UserDB).where(UserDB.id == user_id))
+        result = await self.db.execute(select(UserDB).where(user_id == UserDB.id))
         return result.scalar_one_or_none()
 
     async def delete_user(self, user_id: int) -> bool:
@@ -24,3 +24,7 @@ class UserRepository:
             await self.db.commit()
             return True
         return False
+
+    async def log_in (self, user_email: str):
+        result = await self.db.execute(select(UserDB).where(user_email == UserDB.email))
+        return result.scalar_one_or_none()
