@@ -28,3 +28,4 @@ class UserRepository:
     async def log_in (self, user_email: str):
         result = await self.db.execute(select(UserDB).where(user_email == UserDB.email))
         return result.scalar_one_or_none()
+

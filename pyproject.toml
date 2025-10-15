@@ -8,6 +8,10 @@ dependencies = [
     "asyncpg",
     "python-dotenv",
     "alembic",
-    "pydantic",
+    "pydantic[email]",
+    "pydantic-settings",
     "pyjwt",
+    "psycopg2-binary",
+    "cryptography",
+    "python-jose"
 ]

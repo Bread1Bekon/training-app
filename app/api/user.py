@@ -1,10 +1,11 @@
 from fastapi.responses import Response
-from fastapi import Depends, APIRouter, Cookie
-from fastapi.responses import JSONResponse
+from fastapi import Depends, APIRouter
 
-from app.service.dependencies import get_user_service
-from app.schemas.user import UserCreate, UserOut
-from app.service.user import UserService, token_validation
+from app.auth import get_current_user
+from app.service.dependencies import get_user_service, get_token_service
+from app.schemas.user import UserCreate, UserOut, LoginRequest, LoginResponse
+from app.service.user import UserService
+from app.service.token import TokenService
 
 user_router = APIRouter(
     prefix="/user",
@@ -26,24 +27,18 @@ async def delete_user(
     await user_service.delete_user(user_id)
     return Response(status_code=204)
 
-@user_router.post("/{user_id}", response_model=dict[str, str], status_code=200)
+@user_router.post("/{user_id}", response_model=LoginResponse, status_code=200)
 async def log_in(
-    user_email: str,
-    user_password: str,
+    data: LoginRequest,
     user_service: UserService = Depends(get_user_service)
 ):
-    response_tokens = await user_service.log_in(user_email, user_password)
-    access_token = response_tokens["access_token"]
-    refresh_token = response_tokens["refresh_token"]
-    return JSONResponse(
-        content={"access_token": access_token, "refresh_token": refresh_token},
-        status_code=200
-    )
+    return await user_service.log_in(str(data.email), data.password)
+
 
 @user_router.post("/{user_id}/stats", status_code=200)
 async def user_validation_check(
-        access_token: str = Cookie(None, alias="access_token"),
-        refresh_token: str = Cookie(None, alias="refresh_token"),
+        current_user = Depends(get_current_user),
+        token_service: TokenService = Depends(get_token_service)
 ):
-    tokens = {"access_token": access_token, "refresh_token": refresh_token}
-    return await token_validation(tokens)
+    pass #await token_service.token_validation({"access_token": access_token, "refresh_token": refresh_token})
+
