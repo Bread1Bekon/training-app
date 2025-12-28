@@ -13,5 +13,6 @@ dependencies = [
     "pyjwt",
     "psycopg2-binary",
     "cryptography",
-    "python-jose"
+    "python-jose",
+    "redis"
 ]

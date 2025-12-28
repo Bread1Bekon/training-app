@@ -1,31 +1,21 @@
-from config import Settings
-from datetime import datetime, timezone, timedelta
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from config import settings
+from app.redis_db import redis_db
 from app.models.token import TokenDB
 
+SECONDS_IN_DAY = 86400
+SECONDS_IN_MINUTE = 60
+
 class TokenRepository:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+    def __init__(self):
+        self.redis_client = redis_db
 
-    async def add_tokens(self, refresh_token: str) -> TokenDB:
-        settings = Settings()
-        token = TokenDB(refresh_token=refresh_token, is_valid=True, refresh_expires=datetime.now(timezone.utc) + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_DAYS))
-        self.db.add(token)
-        await self.db.commit()
-        await self.db.refresh(token)
-        return token
+    async def add_access_token(self, token: str):
+        self.redis_client.setex(token, settings.ACCESS_TOKEN_EXPIRE_MINUTES*SECONDS_IN_MINUTE,)
+        return True
 
-    async def get_token(self, refresh_token: str) -> TokenDB:
-        result = await self.db.execute(select(TokenDB).where(refresh_token == TokenDB.refresh_token))
-        return result.scalar_one_or_none()
+    async def add_refresh_token(self, token: str):
+        self.redis_client.setex(token, settings.REFRESH_TOKEN_EXPIRE_DAYS*SECONDS_IN_DAY,)
+        return True
 
-    async def revoke_token(self, refresh_token: str) -> TokenDB:
-        db_token = await self.get_token(refresh_token)
-        if db_token:
-            db_token.is_valid = False
-            await self.db.commit()
-            await self.db.refresh(db_token)
-            return True
-        return False
+    async def check_token(self, token: str) -> TokenDB:
+        return self.redis_client.exists(token)

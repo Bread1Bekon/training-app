@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = Field(alias="PGPORT")
     DATABASE_URL: str
 
+    #redis
+    REDIS_PASSWORD: str
+    REDIS_HOST: str
+    REDIS_PORT: int
+
     # Security
     PRIVATE_KEY: str
     PUBLIC_KEY: str = Field(alias="PUBLIC_KEY")
@@ -26,3 +31,5 @@ class Settings(BaseSettings):
     ALGORITHM: str = "RS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+settings = Settings()

@@ -1,3 +1,4 @@
+booktype
 python-jose
 uliweb-alembic
 pydantic

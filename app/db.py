@@ -1,9 +1,8 @@
 # app/db.py
-from config import Settings
+from config import settings
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-settings = Settings()
 DATABASE_URL = "postgresql+asyncpg://myuser:mypass@db:6000/mydb"
 
 engine = create_async_engine(DATABASE_URL, echo=True)

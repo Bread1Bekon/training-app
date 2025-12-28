@@ -7,6 +7,6 @@ def get_user_repository(db: AsyncSession):
     repository = UserRepository(db)
     return repository
 
-def get_token_repository(db: AsyncSession):
-    repository = TokenRepository(db)
+def get_token_repository():
+    repository = TokenRepository()
     return repository
