@@ -1,15 +1,16 @@
-from fastapi.responses import Response
 from fastapi import Depends, APIRouter
+from fastapi.responses import Response
 
-from app.auth import get_current_user
-from app.service.dependencies import get_user_service, get_token_service
+from app.api.form import form_router
 from app.schemas.user import UserCreate, UserOut, LoginRequest, LoginResponse
-from app.service.user import UserService, TokenService
+from app.service.dependencies import get_user_service
+from app.service.user import UserService
 
 user_router = APIRouter(
     prefix="/user",
     tags=["user"]
 )
+user_router.include_router(form_router)
 
 @user_router.post("/", response_model=UserOut, status_code=201)
 async def create_user(
@@ -35,9 +36,6 @@ async def log_in(
 
 
 @user_router.post("/{user_id}/stats", status_code=200)
-async def user_validation_check(
-        token_service: TokenService = Depends(get_token_service),
-        current_user = Depends(get_current_user)
-):
-    pass #await token_service.token_validation({"access_token": access_token, "refresh_token": refresh_token})
+async def user_validation_check():
+    pass
 

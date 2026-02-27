@@ -19,6 +19,9 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from app.models.base import Base
+from app.models.form import Form
+from app.models.skill import Skill
+from app.models.user import UserDB
 
 target_metadata = Base.metadata
 
@@ -27,7 +30,7 @@ def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
 
     context.configure(
-        url=settings.DATABASE_URL,
+        url=settings.DATABASE_URL.replace("db:6000", "localhost:6000"),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -46,11 +49,13 @@ def run_migrations_online() -> None:
     # Convert async URL to sync URL for Alembic
     if settings.DATABASE_URL.startswith('postgresql+asyncpg://'):
         sync_url = settings.DATABASE_URL.replace('postgresql+asyncpg://', 'postgresql://')
+        sync_url = sync_url.replace("db:6000", "localhost:6000")
     elif settings.DATABASE_URL.startswith('postgresql://'):
         sync_url = settings.DATABASE_URL
+        sync_url = sync_url.replace("db:6000", "localhost:6000")
     else:
-        # If it's a different format, use as-is but this might cause issues
         sync_url = settings.DATABASE_URL
+        sync_url = sync_url.DATABASE_URL.replace("db:6000", "localhost:6000")
 
     # Set the SQLAlchemy URL in configuration
     configuration["sqlalchemy.url"] = sync_url
