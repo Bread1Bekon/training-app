@@ -1,6 +1,6 @@
 # training-app
 
-Fitness/Workout website for tracking your eating habits, creating exercise plans and having online consultations with AI.
+training-app is a networking workshop, designed to help you find mentors with relevant skills and knowdledge, and mentees with desire to learn something you eager to teach.
 
 ## How to start up?
 

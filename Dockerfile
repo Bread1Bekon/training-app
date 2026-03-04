@@ -6,11 +6,11 @@ WORKDIR /app
 COPY . /app
 
 COPY uv.lock pyproject.toml /app/
-RUN uv sync --frozen --no-dev
+RUN uv sync --no-dev #--frozen
 
 ENV PATH="/root/.local/bin/:$PATH"
 ENV PYTHONPATH="/app"
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-ENTRYPOINT ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--workers", "2", "--port", "8000"]

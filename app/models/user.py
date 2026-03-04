@@ -1,9 +1,10 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from .base import Base
 
-Base = declarative_base()
 class UserDB(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    email = Column(String)
+    name = Column(String) #unique=True
+    email = Column(String) #unique=True
+    password = Column(String)
+
