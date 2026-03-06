@@ -4,7 +4,9 @@ from .base import Base
 import enum
 
 class FormStatus(str, enum.Enum):
+    DRAFTING = "drafting"
     PENDING = "pending"
+    IN_MODERATION = "in moderation"
     APPROVED = "approved"
     REJECTED = "rejected"
 

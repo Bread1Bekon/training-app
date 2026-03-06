@@ -4,6 +4,8 @@ import datetime
 
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
+
+from app.dto.user import UserDTO
 from config import settings
 from app.repository.token import TokenRepository
 from app.repository.user import UserRepository
@@ -13,7 +15,7 @@ class TokenService:
     def __init__(self, token_repository: TokenRepository):
         self.token_repository = token_repository
 
-    async def create_access_token(self, user: UserOut, data: dict):
+    async def create_access_token(self, user: UserDTO, data: dict):
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire, "type": "access"})
@@ -21,7 +23,7 @@ class TokenService:
         await self.token_repository.add_access_token(user, token)
         return token
 
-    async def create_refresh_token(self, user: UserOut, data: dict):
+    async def create_refresh_token(self, user: UserDTO, data: dict):
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         to_encode.update({"exp": expire, "type": "refresh"})
@@ -42,7 +44,9 @@ class UserService:
 
     async def create_user(self, user_create: UserCreate) -> UserOut:
         user_create.password = sha256(user_create.password.encode()).hexdigest()
+
         user_db = await self.user_repository.create_user(user_create.model_dump())
+
         return UserOut.model_validate(user_db)
 
     async def delete_user(self, user_id: int) -> None:
@@ -58,9 +62,9 @@ class UserService:
         sha256_password = sha256(user_password.encode()).hexdigest()
         if sha256_password != user.password:
             raise HTTPException(status_code=401, detail="Incorrect password")
-        user_out = UserOut.model_validate(user)
-        access_token = await self.token_service.create_access_token(user_out, data={"sub": user.id})
-        refresh_token =  await self.token_service.create_refresh_token(user_out, data={"sub": user.id})
+        user_dto = UserDTO.model_validate(user)
+        access_token = await self.token_service.create_access_token(user_dto, data={"sub": user.id})
+        refresh_token =  await self.token_service.create_refresh_token(user_dto, data={"sub": user.id})
         response = LoginResponse(access_token=access_token, refresh_token=refresh_token)
         return LoginResponse.model_validate(response)
 

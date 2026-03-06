@@ -23,18 +23,31 @@ class FormRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_form(self, form_data: dict) -> Form:
+    async def create_form(self, form_data: dict, user_id: int) -> Form:
         form = Form(**form_data)
+        form.user_id = user_id
         self.db.add(form)
         await self.db.commit()
         await self.db.refresh(form)
         return form
 
-    async def get_form_by_user_id(self, user_id: int):
-        result = await self.db.execute(select(Form).where(user_id == Form.user_id))
-        return result.scalar_one_or_none()
+    async def update_form_status(self, form_id: int, new_form_status):
+        result = await self.db.execute(select(Form).where(form_id == Form.id))
+        form = result.scalar_one_or_none()
 
-    async def delete_form(self, form: Form) -> bool:
-        await self.db.delete(form)
-        await self.db.flush()
+        if form:
+            form.status = new_form_status
+
+            await self.db.commit()
+            await self.db.refresh(form)
+        return form
+
+    async def delete_existing_form(self, user_id: int):
+        result = await self.db.execute(select(Form).where(user_id == Form.user_id))
+        existing_form = result.scalar_one_or_none()
+
+        if existing_form:
+            await self.db.delete(existing_form)
+            await self.db.flush()
+
         return True

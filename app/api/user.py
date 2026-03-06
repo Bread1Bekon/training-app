@@ -34,8 +34,3 @@ async def log_in(
 ):
     return await user_service.log_in(str(data.email), data.password)
 
-
-@user_router.post("/{user_id}/stats", status_code=200)
-async def user_validation_check():
-    pass
-

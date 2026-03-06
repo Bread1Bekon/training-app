@@ -3,9 +3,14 @@ from enum import Enum
 
 from app.schemas.skill import SkillCreate, SkillOut
 
+class ModFormStatus(str, Enum):
+    approved = "approved"
+    rejected = "rejected"
 
 class FormStatusEnum(str, Enum):
+    drafting = "drafting"
     pending = "pending"
+    in_moderation = "in moderation"
     approved = "approved"
     rejected = "rejected"
 
