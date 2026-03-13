@@ -1,11 +1,7 @@
-import enum
-
 from sqlalchemy import Column, Integer, String, Enum
 from .base import Base
+from ..enums.user import UserType
 
-class UserType(str, enum.Enum):
-     ORDINARY = "ordinary"
-     MODERATOR = "moderator"
 
 class UserDB(Base):
     __tablename__ = 'users'

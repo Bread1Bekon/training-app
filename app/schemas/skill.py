@@ -1,21 +1,17 @@
-from enum import Enum
-
 from pydantic import BaseModel, ConfigDict
 
+from app.enums.skill import SkillType
 
-class SkillTypeEnum(str, Enum):
-    learn = "learn"
-    teach = "teach"
 
 class SkillCreate(BaseModel):
     name: str
     description: str
-    type: SkillTypeEnum
+    type: SkillType
 
 class SkillOut(BaseModel):
     id: int
     name: str
     description: str
-    type: SkillTypeEnum
+    type: SkillType
 
     model_config = ConfigDict(from_attributes=True)

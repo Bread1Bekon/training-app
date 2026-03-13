@@ -1,11 +1,7 @@
-import enum
-
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
 from .base import Base
+from ..enums.skill import SkillType
 
-class SkillType(str, enum.Enum):
-    LEARN = "learn"
-    TEACH = "teach"
 
 class Skill(Base):
     __tablename__ = 'skills'

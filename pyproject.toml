@@ -14,5 +14,6 @@ dependencies = [
     "psycopg2-binary",
     "cryptography",
     "python-jose",
-    "redis"
+    "redis",
+    "elasticsearch"
 ]

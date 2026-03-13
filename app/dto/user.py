@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.user import UserType
+from app.enums.user import UserType
 
 
 class UserDTO(BaseModel):

@@ -1,14 +1,8 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey
 from .base import Base
-import enum
+from ..enums.form import FormStatus
 
-class FormStatus(str, enum.Enum):
-    DRAFTING = "drafting"
-    PENDING = "pending"
-    IN_MODERATION = "in moderation"
-    APPROVED = "approved"
-    REJECTED = "rejected"
 
 class Form(Base):
     __tablename__ = 'form'

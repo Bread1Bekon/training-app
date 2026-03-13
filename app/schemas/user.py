@@ -1,11 +1,7 @@
-import enum
-
 from pydantic import BaseModel, EmailStr, ConfigDict
 
+from app.enums.user import UserType
 
-class UserType(str, enum.Enum):
-    ordinary = "ordinary"
-    moderator = "moderator"
 
 class UserCreate(BaseModel):
     name: str

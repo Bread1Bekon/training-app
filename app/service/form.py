@@ -2,10 +2,10 @@ from fastapi import HTTPException
 
 from app.dto.form import FormDTO
 from app.dto.user import UserDTO
-from app.models.form import FormStatus
+from app.enums.user import UserType
 from app.repository.form import FormRepository
 from app.repository.form import SkillRepository
-from app.schemas.form import FormCreate, FormOut, FormStatusEnum
+from app.schemas.form import FormCreate, FormOut
 from app.schemas.skill import SkillOut
 
 
@@ -33,7 +33,7 @@ class FormService:
         )
 
     async def update_form_status(self, form_id, new_form_status, current_user):
-        if current_user.access_level != "moderator":
+        if current_user.access_level != UserType.MODERATOR:
             raise HTTPException(status_code=403, detail="Forbidden. You don't have access to this action.")
 
         form = await self.form_repository.update_form_status(form_id, new_form_status)
