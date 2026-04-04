@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int
 
     #elasicsearch
-    ELASTICSEARCH_USER: str = str
-    ELASTICSEARCH_PASSWORD: str = str
+    ELASTICSEARCH_USER: str
+    ELASTICSEARCH_PASSWORD: str
     ELASTICSEARCH_URL: str
 
     # Security

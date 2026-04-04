@@ -15,5 +15,7 @@ dependencies = [
     "cryptography",
     "python-jose",
     "redis",
-    "elasticsearch"
+    "elasticsearch",
+    "elasticsearch_dsl",
+    "aiohttp>=3.13.3",
 ]

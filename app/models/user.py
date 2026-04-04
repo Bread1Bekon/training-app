@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy.orm import relationship
+
 from .base import Base
 from ..enums.user import UserType
 
@@ -10,4 +12,6 @@ class UserDB(Base):
     email = Column(String) #unique=True
     password = Column(String)
     access_level = Column(Enum(UserType))
+
+    forms = relationship("Form", back_populates="owner", cascade="all, delete-orphan")
 

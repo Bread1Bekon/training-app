@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .form import FormService
 from .user import UserService, TokenService
+from ..elasticsearch import get_elasticsearch
 from ..repository.dependencies import get_user_repository, get_token_repository, get_form_repository, \
     get_skill_repository
 from ..db import get_db
@@ -18,8 +19,8 @@ def get_token_service():
     service = TokenService(token_repository)
     return service
 
-def get_form_service(db: AsyncSession = Depends(get_db)):
+def get_form_service(db: AsyncSession = Depends(get_db), elasticsearch = Depends(get_elasticsearch)):
     form_repository = get_form_repository(db)
-    skill_repository = get_skill_repository(db)
+    skill_repository = get_skill_repository(db, elasticsearch)
     service = FormService(form_repository, skill_repository)
     return service

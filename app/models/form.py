@@ -11,4 +11,5 @@ class Form(Base):
     user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
     status = Column(Enum(FormStatus), default=FormStatus.PENDING, nullable=False)
 
-    skills = relationship("Skill", backref="form", cascade="all, delete-orphan")
+    skills = relationship("Skill", back_populates="owner", cascade="all, delete-orphan")
+    owner = relationship("UserDB", back_populates="forms")
