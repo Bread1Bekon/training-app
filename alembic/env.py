@@ -19,7 +19,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from app.models.base import Base
-from app.models.form import Form
+from app.models.form import Form, RejectedForm
 from app.models.skill import Skill
 from app.models.user import UserDB
 

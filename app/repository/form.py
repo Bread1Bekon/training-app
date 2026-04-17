@@ -1,6 +1,8 @@
 import json
+from typing import Any, Coroutine
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 from elasticsearch.helpers import async_bulk
 from elasticsearch import AsyncElasticsearch
@@ -12,9 +14,10 @@ from app.redis_db import redis_db
 from app.dto.form import FormDTO
 from app.dto.skill import SkillDTO
 from app.enums.skill import SkillType
-from app.models.form import Form
+from app.models.form import Form, RejectedForm
 from app.models.skill import Skill
 from app.elastic_models.skill import SkillDoc
+from app.schemas.form import ScoredForm
 
 LOGGER = getLogger(__name__)
 
@@ -56,7 +59,7 @@ class SkillRepository:
 
         return [SkillDTO.model_validate(s) for s in skills_db]
 
-    async def get_suitable_forms(self, skills: list[SkillDTO], user_id: int):
+    async def get_suitable_forms(self, skills: list[SkillDTO], user_id: int) -> list[ScoredForm]:
         s = AsyncSearch(index='skills')
 
         opposite_type = {
@@ -83,21 +86,19 @@ class SkillRepository:
 
         print(f"Total hits: {response.hits.total.value}") #for debug
 
-        unique_forms = {}
-
         bloom_key = f"rejects:{user_id}"
+
+        unique_forms: dict[int, ScoredForm] = {}
 
         for hit in response.hits:
             fid = hit.form_id
             score = hit.meta.score
 
-            is_rejected = await redis_db.execute_command("BF.EXISTS", bloom_key, fid)
-
-            if is_rejected:
+            if await redis_db.execute_command("BF.EXISTS", bloom_key, fid):
                 continue
 
-            if fid not in unique_forms or score > unique_forms[fid]["score"]:
-                unique_forms[fid] = {"form_id": fid, "score": score}
+            if fid not in unique_forms or score > unique_forms[fid].score:
+                unique_forms[fid] = ScoredForm(form_id=fid, score=score)
 
         return list(unique_forms.values())
 
@@ -107,15 +108,17 @@ class FormRepository:
         self.db = db
         self.redis_client = redis_db
 
-    async def create_form(self, form_data: dict, user_id: int) -> Form:
+    async def create_form(self, form_data: dict, user_id: int) -> FormDTO:
         form = Form(**form_data)
         form.user_id = user_id
+
         self.db.add(form)
         await self.db.commit()
         await self.db.refresh(form)
-        return form
 
-    async def update_form_status(self, form_id: int, new_form_status):
+        return FormDTO.model_validate(form)
+
+    async def update_form_status(self, form_id: int, new_form_status) -> FormDTO:
         result = await self.db.execute(select(Form).where(form_id == Form.id))
         form = result.scalar_one_or_none()
 
@@ -124,7 +127,7 @@ class FormRepository:
 
             await self.db.commit()
             await self.db.refresh(form)
-        return form
+        return FormDTO.model_validate(form)
 
     async def delete_existing_form(self, user_id: int):
         result = await self.db.execute(select(Form).where(user_id == Form.user_id))
@@ -136,7 +139,7 @@ class FormRepository:
 
         return True
 
-    async def get_form_by_id(self, user_id: int):
+    async def get_form_by_id(self, user_id: int) -> FormDTO:
         query = (
             select(Form)
             .where(user_id == Form.user_id)
@@ -150,3 +153,11 @@ class FormRepository:
         bloom_key = f"rejects:{user_id}"
 
         await redis_db.execute_command("BF.ADD", bloom_key, rejected_form_id)
+
+    async def add_rejected_to_db(self, user_id: int, rejected_form_id: int):
+        stmt = insert(RejectedForm).values(
+            user_id=user_id,
+            rejected_form_id=rejected_form_id
+        ).on_conflict_do_nothing()
+
+        await self.db.execute(stmt)

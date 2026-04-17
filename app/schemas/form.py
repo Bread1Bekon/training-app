@@ -8,6 +8,10 @@ class FormCreate(BaseModel):
     description: str
     skills: list[SkillCreate]
 
+class ScoredForm(BaseModel): #for elasticsearch matchmaking
+    form_id: int
+    score: float
+
 class FormOut(BaseModel):
     id: int
     description: str

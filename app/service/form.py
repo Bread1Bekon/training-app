@@ -11,7 +11,7 @@ from app.redis_db import redis_db
 from app.repository.form import FormRepository
 from app.repository.form import SkillRepository
 from app.repository.token import SECONDS_IN_DAY
-from app.schemas.form import FormCreate, FormOut
+from app.schemas.form import FormCreate, FormOut, ScoredForm
 from app.schemas.skill import SkillOut
 
 
@@ -46,7 +46,8 @@ class FormService:
 
         return form
 
-    async def find_suitable_forms(self, user_id: int):
+    @cache(TTL=10)
+    async def find_suitable_forms(self, user_id: int) -> list[ScoredForm]:
         form = await self.form_repository.get_form_by_id(user_id)
         skills = await self.skill_repository.get_skills_by_form(form)
         suitable_forms = await self.skill_repository.get_suitable_forms(skills, user_id)
@@ -55,10 +56,11 @@ class FormService:
             await redis_db.setex(
                 user_id,
                 SECONDS_IN_DAY,
-                json.dumps(suitable_forms),
+                json.dumps([form.model_dump() for form in suitable_forms]),
             )
 
         return suitable_forms
 
     async def reject_form(self, user_id: int, rejected_form_id: int):
-        return await self.form_repository.reject_form(user_id, rejected_form_id)
+        await self.form_repository.add_rejected_to_db(user_id, rejected_form_id)
+        await self.form_repository.reject_form(user_id, rejected_form_id)

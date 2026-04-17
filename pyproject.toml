@@ -18,4 +18,5 @@ dependencies = [
     "elasticsearch",
     "elasticsearch_dsl",
     "aiohttp>=3.13.3",
+    "faker"
 ]
