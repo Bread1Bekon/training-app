@@ -80,6 +80,7 @@ class SkillRepository:
             should_queries.append(q)
 
         s = s.query('bool', should=should_queries)
+        s = s[0:15]
 
         print(json.dumps(s.to_dict(), indent=2))#for debug
         response = await s.using(self.es_client).execute()

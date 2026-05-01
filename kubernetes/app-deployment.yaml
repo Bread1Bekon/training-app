@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.service: app
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.service: app
+  template:
+    metadata:
+      annotations:
+        io.service: app
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: env
+          image: training-app-app:latest
+          name: app
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: app
+  name: app
+spec:
+  ports:
+    - name: "8000"
+      port: 8000
+      targetPort: 8000
+  selector:
+    service: app

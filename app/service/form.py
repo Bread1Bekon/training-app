@@ -46,7 +46,6 @@ class FormService:
 
         return form
 
-    @cache(TTL=10)
     async def find_suitable_forms(self, user_id: int) -> list[ScoredForm]:
         form = await self.form_repository.get_form_by_id(user_id)
         skills = await self.skill_repository.get_skills_by_form(form)

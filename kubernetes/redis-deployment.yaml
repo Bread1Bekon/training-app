@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: redis
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: redis
+  template:
+    metadata:
+      labels:
+        service: redis
+    spec:
+      containers:
+        - env:
+            - name: REDIS_ARGS
+              value: --requirepass redispass
+          image: redis/redis-stack-server:latest
+          name: redis
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+      restartPolicy: Always
