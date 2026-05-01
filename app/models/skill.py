@@ -1,11 +1,9 @@
-import enum
-
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
-from .base import Base
+from sqlalchemy.orm import relationship
 
-class SkillType(str, enum.Enum):
-    LEARN = "learn"
-    TEACH = "teach"
+from .base import Base
+from ..enums.skill import SkillType
+
 
 class Skill(Base):
     __tablename__ = 'skills'
@@ -14,3 +12,5 @@ class Skill(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     type = Column(Enum(SkillType), nullable=False)
+
+    owner = relationship("Form", back_populates="skills")

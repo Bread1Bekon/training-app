@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
 
+    #elasicsearch
+    ELASTICSEARCH_USER: str
+    ELASTICSEARCH_PASSWORD: str
+    ELASTICSEARCH_URL: str
+
     # Security
     PRIVATE_KEY: str
     PUBLIC_KEY: str = Field(alias="PUBLIC_KEY")

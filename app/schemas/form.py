@@ -1,23 +1,22 @@
 from pydantic import BaseModel, ConfigDict
 from enum import Enum
 
+from app.enums.form import FormStatus
 from app.schemas.skill import SkillCreate, SkillOut
-
-
-class FormStatusEnum(str, Enum):
-    pending = "pending"
-    approved = "approved"
-    rejected = "rejected"
 
 class FormCreate(BaseModel):
     description: str
     skills: list[SkillCreate]
 
+class ScoredForm(BaseModel): #for elasticsearch matchmaking
+    form_id: int
+    score: float
+
 class FormOut(BaseModel):
     id: int
     description: str
     user_id: int
-    status: FormStatusEnum
+    status: FormStatus
     skills: list[SkillOut] = []
 
     model_config = ConfigDict(from_attributes=True)

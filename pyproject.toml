@@ -14,5 +14,9 @@ dependencies = [
     "psycopg2-binary",
     "cryptography",
     "python-jose",
-    "redis"
+    "redis",
+    "elasticsearch",
+    "elasticsearch_dsl",
+    "aiohttp>=3.13.3",
+    "faker"
 ]
