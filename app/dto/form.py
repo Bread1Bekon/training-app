@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from app.enums.form import FormStatus
 from app.dto.skill import SkillDTO
 
+
 class FormDTO(BaseModel):
     id: int
     description: str

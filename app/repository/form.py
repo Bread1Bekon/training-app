@@ -21,6 +21,7 @@ from app.schemas.form import ScoredForm
 
 LOGGER = getLogger(__name__)
 
+
 class SkillRepository:
     def __init__(self, db: AsyncSession, elasticsearch: AsyncElasticsearch):
         self.db = db
@@ -45,7 +46,7 @@ class SkillRepository:
                 form_id=skill.form_id,
                 name=skill.name,
                 description=skill.description,
-                type=skill.type.value
+                type=skill.type.value,
             ).to_dict(include_meta=True)
             for skill in skills
         ]
@@ -59,12 +60,14 @@ class SkillRepository:
 
         return [SkillDTO.model_validate(s) for s in skills_db]
 
-    async def get_suitable_forms(self, skills: list[SkillDTO], user_id: int) -> list[ScoredForm]:
-        s = AsyncSearch(index='skills')
+    async def get_suitable_forms(
+        self, skills: list[SkillDTO], user_id: int
+    ) -> list[ScoredForm]:
+        s = AsyncSearch(index="skills")
 
         opposite_type = {
             SkillType.LEARN: SkillType.TEACH,
-            SkillType.TEACH: SkillType.LEARN
+            SkillType.TEACH: SkillType.LEARN,
         }
 
         should_queries = []
@@ -72,20 +75,21 @@ class SkillRepository:
         for skill in skills:
             target_type = opposite_type.get(skill.type).lower()
 
-            q = Q('bool',
-                  filter=[Q('term', type=target_type)],
-                  must=[Q('match', name={'query': skill.name, 'fuzziness': 'AUTO'})],
-                  must_not=[Q('term', form_id=skill.form_id)]
-                  )
+            q = Q(
+                "bool",
+                filter=[Q("term", type=target_type)],
+                must=[Q("match", name={"query": skill.name, "fuzziness": "AUTO"})],
+                must_not=[Q("term", form_id=skill.form_id)],
+            )
             should_queries.append(q)
 
-        s = s.query('bool', should=should_queries)
+        s = s.query("bool", should=should_queries)
         s = s[0:15]
 
-        print(json.dumps(s.to_dict(), indent=2))#for debug
+        print(json.dumps(s.to_dict(), indent=2))  # for debug
         response = await s.using(self.es_client).execute()
 
-        print(f"Total hits: {response.hits.total.value}") #for debug
+        print(f"Total hits: {response.hits.total.value}")  # for debug
 
         bloom_key = f"rejects:{user_id}"
 
@@ -117,7 +121,12 @@ class FormRepository:
         await self.db.commit()
         await self.db.refresh(form)
 
-        return FormDTO.model_validate(form)
+        return FormDTO(
+            id=form.id,
+            description=form.description,
+            user_id=form.user_id,
+            status=form.status,
+        )
 
     async def update_form_status(self, form_id: int, new_form_status) -> FormDTO:
         result = await self.db.execute(select(Form).where(form_id == Form.id))
@@ -156,9 +165,10 @@ class FormRepository:
         await redis_db.execute_command("BF.ADD", bloom_key, rejected_form_id)
 
     async def add_rejected_to_db(self, user_id: int, rejected_form_id: int):
-        stmt = insert(RejectedForm).values(
-            user_id=user_id,
-            rejected_form_id=rejected_form_id
-        ).on_conflict_do_nothing()
+        stmt = (
+            insert(RejectedForm)
+            .values(user_id=user_id, rejected_form_id=rejected_form_id)
+            .on_conflict_do_nothing()
+        )
 
         await self.db.execute(stmt)

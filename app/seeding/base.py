@@ -4,7 +4,8 @@ from db_seed import seed_postgres
 from elasticsearch_seed import index_skills_to_elasticsearch
 import asyncio
 
-async def seed_all ():
+
+async def seed_all():
     session = async_session()
     await seed_postgres(session, num_users=10)
 
@@ -14,6 +15,7 @@ async def seed_all ():
 
     session.close()
     print("Seeding completed.")
+
 
 if __name__ == "__main__":
     asyncio.run(seed_all())

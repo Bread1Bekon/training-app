@@ -18,5 +18,8 @@ dependencies = [
     "elasticsearch",
     "elasticsearch_dsl",
     "aiohttp>=3.13.3",
-    "faker"
+    "faker",
+    "jinja2"
 ]
+[tool.uv]
+native-tls = true

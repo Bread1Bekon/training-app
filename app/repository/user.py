@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import UserDB
 
+
 class UserRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -25,7 +26,6 @@ class UserRepository:
             return True
         return False
 
-    async def log_in (self, user_email: str):
+    async def log_in(self, user_email: str):
         result = await self.db.execute(select(UserDB).where(user_email == UserDB.email))
         return result.scalar_one_or_none()
-

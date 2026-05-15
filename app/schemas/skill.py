@@ -8,6 +8,7 @@ class SkillCreate(BaseModel):
     description: str
     type: SkillType
 
+
 class SkillOut(BaseModel):
     id: int
     name: str

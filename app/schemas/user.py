@@ -7,7 +7,8 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    access_level: UserType
+    access_level: UserType = UserType.ORDINARY
+
 
 class UserOut(BaseModel):
     id: int
@@ -17,9 +18,11 @@ class UserOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+
 
 class LoginResponse(BaseModel):
     access_token: str
