@@ -6,6 +6,6 @@ from app.schemas.user import UserOut
 
 class UserProfileResponse(BaseModel):
     user: UserOut
-    form: FormDTO
+    form: FormDTO | None = None
 
     model_config = ConfigDict(from_attributes=True)

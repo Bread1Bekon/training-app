@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { User, Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../lib/api';
-import { UserType } from '../../context/AuthContext';
+import { useAuth, UserType } from '../../context/AuthContext';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -12,6 +12,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +31,20 @@ export default function Register() {
         }),
       });
 
-      // Registration successful, redirect to profile customization (Step 2)
+      // Automatically log the user in to prevent "unauthorized" error during form creation
+      const loginData = await apiFetch('/user/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+
+      login(loginData.access_token, loginData.refresh_token, {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        access_level: user.access_level || UserType.ORDINARY
+      });
+
+      // Registration & login successful, redirect to profile customization (Step 2)
       navigate(`/create-form/${user.id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');

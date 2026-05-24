@@ -1,6 +1,6 @@
 import json
 
-from app.exceptions import ForbiddenError
+from app.errors import ForbiddenError
 from sqlalchemy.testing.pickleable import User
 
 from app.dto.form import FormDTO
@@ -11,35 +11,31 @@ from app.redis_db import redis_db
 from app.repository.form import FormRepository
 from app.repository.form import SkillRepository
 from app.repository.token import SECONDS_IN_DAY
-from app.schemas.form import FormCreate, FormOut, ScoredForm
+from app.schemas.form import FormCreate, FormOut, ScoredForm, ScoredFormOut
 from app.schemas.skill import SkillOut
 
 
 class FormService:
-    def __init__(
-        self, form_repository: FormRepository, skill_repository: SkillRepository
-    ):
+    def __init__(self, form_repository: FormRepository, skill_repository: SkillRepository):
         self.form_repository = form_repository
         self.skill_repository = skill_repository
 
     async def create_form(self, user: UserDTO, form_data: FormCreate) -> FormOut:
         await self.form_repository.delete_existing_form(user.id)
 
-        new_form = await self.form_repository.create_form(
-            form_data.model_dump(exclude={"skills"}), user.id
-        )
+        new_form = await self.form_repository.create_form(form_data.model_dump(exclude={"skills"}), user.id)
 
         skills_dicts = [skill.model_dump() for skill in form_data.skills]
-        created_skills = await self.skill_repository.create_skills(
-            new_form.id, skills_dicts
-        )
+        created_skills = await self.skill_repository.create_skills(new_form.id, skills_dicts)
 
         return FormOut(
             id=new_form.id,
             description=new_form.description,
             user_id=new_form.user_id,
             status=new_form.status,
-            skills=[SkillOut.model_validate(i) for i in created_skills],
+            skills=[
+                SkillOut.model_validate(i) for i in created_skills
+            ]
         )
 
     async def update_form_status(self, form_id, new_form_status, current_user):
@@ -50,19 +46,44 @@ class FormService:
 
         return form
 
-    async def find_suitable_forms(self, user_id: int) -> list[ScoredForm]:
+    async def find_suitable_forms(self, user_id: int) -> list[ScoredFormOut]:
         form = await self.form_repository.get_form_by_id(user_id)
+        if not form:
+            return []
         skills = await self.skill_repository.get_skills_by_form(form)
         suitable_forms = await self.skill_repository.get_suitable_forms(skills, user_id)
 
-        if suitable_forms:
-            await redis_db.setex(
-                user_id,
-                SECONDS_IN_DAY,
-                json.dumps([form.model_dump() for form in suitable_forms]),
-            )
+        if not suitable_forms:
+            return []
 
-        return suitable_forms
+        form_ids = [sf.form_id for sf in suitable_forms]
+        forms_db = await self.form_repository.get_forms_by_ids(form_ids)
+        forms_map = {f.id: f for f in forms_db}
+
+        scored_forms_out = []
+        for sf in suitable_forms:
+            f = forms_map.get(sf.form_id)
+            if f:
+                scored_forms_out.append(
+                    ScoredFormOut(
+                        id=f.id,
+                        description=f.description,
+                        user_id=f.user_id,
+                        status=f.status,
+                        skills=[SkillOut.model_validate(s) for s in f.skills],
+                        score=sf.score
+                    )
+                )
+
+        scored_forms_out.sort(key=lambda x: x.score, reverse=True)
+
+        await redis_db.setex(
+            user_id,
+            SECONDS_IN_DAY,
+            json.dumps([item.model_dump() for item in scored_forms_out]),
+        )
+
+        return scored_forms_out
 
     async def reject_form(self, user_id: int, rejected_form_id: int):
         await self.form_repository.add_rejected_to_db(user_id, rejected_form_id)

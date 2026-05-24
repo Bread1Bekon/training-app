@@ -20,24 +20,32 @@ export default function Login() {
     setError(null);
 
     try {
-      // Using 'login' as the placeholder for the {user_id} path param from the user's snippet
-      // Or if their backend really expects an ID, we might need a different approach, 
-      // but usually 'login' is a standard endpoint.
       const data = await apiFetch('/user/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
 
-      // Assuming we'd fetch the user profile next, or that the login response includes it.
-      // Based on the user's snippet, LoginResponse only has tokens.
-      // We'll mock the user profile data for now or try to fetch it if there was an endpoint.
-      // Since the snippet doesn't show a GET /user/me, we'll use dummy data for the context structure.
-      login(data.access_token, data.refresh_token, {
-        id: 0,
-        name: 'User',
-        email: email,
-        access_level: UserType.ORDINARY
-      });
+      // Temporarily store the token in localStorage so that the immediate apiFetch for /user/me utilizes it
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+
+      try {
+        const profileData = await apiFetch('/user/me');
+        login(data.access_token, data.refresh_token, {
+          id: profileData.user.id,
+          name: profileData.user.name,
+          email: profileData.user.email,
+          access_level: profileData.user.access_level
+        });
+      } catch (fetchMeError) {
+        console.warn("Could not retrieve real profile details from /user/me", fetchMeError);
+        login(data.access_token, data.refresh_token, {
+          id: 0,
+          name: 'User',
+          email: email,
+          access_level: UserType.ORDINARY
+        });
+      }
       
       navigate('/');
     } catch (err: any) {

@@ -73,8 +73,8 @@ export default function CreateForm() {
         }),
       });
 
-      // After form creation, we usually want them to log in to start their session
-      navigate('/login');
+      // Since they are now logged in automatically during registration, we route them straight to the main experience
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Failed to create form. Please try again.');
     } finally {

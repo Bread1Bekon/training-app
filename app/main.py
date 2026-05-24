@@ -1,8 +1,9 @@
+import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from app.api import root_router
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,30 +12,18 @@ from app.models.user import Base, UserDB
 
 from app.db import engine
 from app.models.base import Base
-from app.exceptions import AuthenticationError, ForbiddenError, NotFoundError, AppError
+from app.errors import AppError
+
 
 app = FastAPI(debug=True)
 
-
-@app.exception_handler(AuthenticationError)
-async def authentication_error_handler(request: Request, exc: AuthenticationError):
-    return JSONResponse(status_code=401, content={"detail": exc.message})
-
-
-@app.exception_handler(ForbiddenError)
-async def forbidden_error_handler(request: Request, exc: ForbiddenError):
-    return JSONResponse(status_code=403, content={"detail": exc.message})
-
-
-@app.exception_handler(NotFoundError)
-async def not_found_error_handler(request: Request, exc: NotFoundError):
-    return JSONResponse(status_code=404, content={"detail": exc.message})
-
-
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError):
-    return JSONResponse(status_code=400, content={"detail": exc.message})
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
+@app.get("/")
+async def read_root():
+    return {"status": "online", "message": "MentorFlow Backend API is fully active!"}
 
 origins = [
     "http://localhost:3000",
@@ -49,7 +38,7 @@ app.add_middleware(
 )
 
 
-# load_dotenv()
+#load_dotenv()
 # @app.on_event("startup")
 # async def startup_event():
 #     # Создать таблицы, если их нет
@@ -59,3 +48,5 @@ app.add_middleware(
 
 
 app.include_router(root_router)
+
+

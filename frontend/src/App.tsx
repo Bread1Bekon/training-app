@@ -10,6 +10,7 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import CreateForm from "./components/auth/CreateForm";
 import Profile from "./components/Profile";
+import Swipe from "./components/Swipe";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/create-form/:userId" element={<CreateForm />} />
           <Route path="/profile/:userId" element={<Profile />} />
+          <Route path="/swipe" element={<Swipe />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -4,7 +4,7 @@ import datetime
 
 from datetime import datetime, timedelta, timezone
 
-from app.exceptions import AuthenticationError, ForbiddenError, NotFoundError
+from app.errors import AuthenticationError, ForbiddenError, NotFoundError
 from app.dto.user import UserDTO
 from app.schemas.user_profile import UserProfileResponse
 from config import settings
@@ -12,32 +12,23 @@ from app.repository.token import TokenRepository
 from app.repository.user import UserRepository
 from app.schemas.user import UserCreate, UserOut, LoginResponse
 
-
 class TokenService:
     def __init__(self, token_repository: TokenRepository):
         self.token_repository = token_repository
 
     async def create_access_token(self, user: UserDTO, data: dict):
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire, "type": "access"})
-        token = jwt.encode(
-            to_encode, settings.PRIVATE_KEY, algorithm=settings.ALGORITHM
-        )
+        token = jwt.encode(to_encode, settings.PRIVATE_KEY, algorithm=settings.ALGORITHM)
         await self.token_repository.add_access_token(user, token)
         return token
 
     async def create_refresh_token(self, user: UserDTO, data: dict):
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + timedelta(
-            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-        )
+        expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         to_encode.update({"exp": expire, "type": "refresh"})
-        token = jwt.encode(
-            to_encode, settings.PRIVATE_KEY, algorithm=settings.ALGORITHM
-        )
+        token = jwt.encode(to_encode, settings.PRIVATE_KEY, algorithm=settings.ALGORITHM)
         await self.token_repository.add_refresh_token(user, token)
         return token
 
@@ -46,7 +37,6 @@ class TokenService:
         if payload:
             return payload
         raise ForbiddenError("Forbidden. Login failed.")
-
 
 class UserService:
     def __init__(self, user_repository: UserRepository, token_service: TokenService):
@@ -66,7 +56,7 @@ class UserService:
             raise NotFoundError("User not found")
 
     async def log_in(self, user_email: str, user_password: str):
-        # Todo: add user data validation
+        #Todo: add user data validation
         user = await self.user_repository.log_in(user_email)
         if not user:
             raise NotFoundError("User not found")
@@ -74,12 +64,8 @@ class UserService:
         if sha256_password != user.password:
             raise AuthenticationError("Incorrect password")
         user_dto = UserDTO.model_validate(user)
-        access_token = await self.token_service.create_access_token(
-            user_dto, data={"sub": user.id}
-        )
-        refresh_token = await self.token_service.create_refresh_token(
-            user_dto, data={"sub": user.id}
-        )
+        access_token = await self.token_service.create_access_token(user_dto, data={"sub": user.id})
+        refresh_token =  await self.token_service.create_refresh_token(user_dto, data={"sub": user.id})
         response = LoginResponse(access_token=access_token, refresh_token=refresh_token)
         return LoginResponse.model_validate(response)
 

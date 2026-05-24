@@ -6,3 +6,4 @@ root_router = APIRouter(
 )
 
 root_router.include_router(user_router)
+

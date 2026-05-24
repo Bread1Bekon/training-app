@@ -12,21 +12,13 @@ from app.enums.form import FormStatus
 from app.enums.user import UserType
 from app.enums.skill import SkillType
 
+
 fake = Faker()
 
 # Sample data pools (optional)
 SKILL_NAMES = [
-    "Python Basics",
-    "Git & GitHub",
-    "Python",
-    "Git",
-    "Data Science",
-    "Machine Learning",
-    "Web Development",
-    "SQL",
-    "Docker",
-    "REST APIs",
-    "PostgreSQL",
+    "Python Basics", "Git & GitHub", "Python", "Git", "Data Science", "Machine Learning", "Web Development", "SQL",
+    "Docker", "REST APIs", "PostgreSQL"
 ]
 
 DESCRIPTIONS = {
@@ -52,7 +44,7 @@ async def seed_postgres(session: AsyncSession, num_users: int = 10):
             name=fake.unique.name(),
             email=fake.unique.email(),
             password=fake.password(length=12),
-            access_level=UserType.ORDINARY,
+            access_level=UserType.ORDINARY
         )
         users.append(user)
         session.add(user)
@@ -70,9 +62,7 @@ async def seed_postgres(session: AsyncSession, num_users: int = 10):
 
     for form in forms:
         num_skills = random.randint(1, 5)
-        selected_skills = random.sample(
-            SKILL_NAMES, k=min(num_skills, len(SKILL_NAMES))
-        )
+        selected_skills = random.sample(SKILL_NAMES, k=min(num_skills, len(SKILL_NAMES)))
         for name in selected_skills:
             skill_type = random.choice([SkillType.LEARN, SkillType.TEACH])
             description = DESCRIPTIONS.get(name, fake.text(max_nb_chars=200))

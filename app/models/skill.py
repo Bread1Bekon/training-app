@@ -6,9 +6,9 @@ from ..enums.skill import SkillType
 
 
 class Skill(Base):
-    __tablename__ = "skills"
+    __tablename__ = 'skills'
     id = Column(Integer, primary_key=True)
-    form_id = Column(Integer, ForeignKey("form.id"), nullable=False)
+    form_id = Column(Integer, ForeignKey('form.id'), nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     type = Column(Enum(SkillType), nullable=False)

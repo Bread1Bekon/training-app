@@ -49,6 +49,9 @@ export default function Landing() {
                 <>
                   <span className="text-sm text-slate-400 hidden sm:block">Hello, <span className="text-white font-bold">{user?.name}</span></span>
                   <button onClick={logout} className="text-sm font-medium text-slate-400 hover:text-white transition-colors px-2">Sign Out</button>
+                  <Link to="/swipe" className="text-sm font-medium text-brand-light hover:text-white transition-colors px-2">
+                    Find Matches
+                  </Link>
                   <Link to={`/profile/${user?.id}`} className="bg-white text-black text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-slate-200 transition-all">
                     My Profile
                   </Link>
@@ -233,12 +236,25 @@ export default function Landing() {
               Join a community of experts committed to growth. No fees for individuals during our inaugural workshop phase.
             </p>
             <div className="flex flex-wrap justify-center gap-6">
-              <Link to="/register" className="bg-white text-black px-12 py-5 rounded-full font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
-                Join MentorFlow <ArrowRight className="w-6 h-6" />
-              </Link>
-              <button className="bg-white/5 border border-white/10 text-white px-12 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all">
-                Explore Workshops
-              </button>
+              {isAuthenticated ? (
+                <>
+                  <Link to="/swipe" className="bg-white text-black px-12 py-5 rounded-full font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+                    Find matches <ArrowRight className="w-6 h-6" />
+                  </Link>
+                  <Link to={`/profile/${user?.id}`} className="bg-white/5 border border-white/10 text-white px-12 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all flex items-center justify-center">
+                    My Profile
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/register" className="bg-white text-black px-12 py-5 rounded-full font-bold text-lg hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+                    Join MentorFlow <ArrowRight className="w-6 h-6" />
+                  </Link>
+                  <button className="bg-white/5 border border-white/10 text-white px-12 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all">
+                    Explore Workshops
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </section>
