@@ -1,5 +1,7 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import HTTPBearer
+
+from app.errors import AuthenticationError
 
 from app.dto.user import UserDTO
 from app.schemas.user import UserOut
@@ -13,5 +15,5 @@ async def get_current_user(
     token = credentials.credentials
     user = await token_service.token_validation(token)
     if not user:
-        raise HTTPException(status_code=401, detail="Token expired or invalid")
+        raise AuthenticationError("Token expired or invalid")
     return UserDTO.model_validate(user)

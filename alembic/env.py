@@ -47,10 +47,12 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section) or {}
 
     # Convert async URL to sync URL for Alembic
-    if settings.DATABASE_URL.startswith('postgresql+asyncpg://'):
-        sync_url = settings.DATABASE_URL.replace('postgresql+asyncpg://', 'postgresql://')
+    if settings.DATABASE_URL.startswith("postgresql+asyncpg://"):
+        sync_url = settings.DATABASE_URL.replace(
+            "postgresql+asyncpg://", "postgresql://"
+        )
         sync_url = sync_url.replace("db:6000", "localhost:6000")
-    elif settings.DATABASE_URL.startswith('postgresql://'):
+    elif settings.DATABASE_URL.startswith("postgresql://"):
         sync_url = settings.DATABASE_URL
         sync_url = sync_url.replace("db:6000", "localhost:6000")
     else:
@@ -67,10 +69,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

@@ -36,11 +36,3 @@ async def find_relevant_forms(
     current_user: UserDTO = Depends(get_current_user)
 ):
     return await form_service.find_suitable_forms(current_user.id)
-
-@form_router.post("/")
-async def reject_form(
-        rejected_form_id: int,
-        form_service: FormService = Depends(get_form_service),
-        current_user: UserDTO = Depends(get_current_user)
-):
-    return await form_service.reject_form(current_user.id, rejected_form_id)

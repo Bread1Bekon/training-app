@@ -1,0 +1,202 @@
+<!-- auth.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training-App: Account & Login</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background: #eee;
+            border: 1px solid #ddd;
+        }
+        .tab.active {
+            background: white;
+            border-bottom: none;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            text-decoration: none;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('register')">Create Account</div>
+            <div class="tab" onclick="showTab('login')">Log In</div>
+        </div>
+        <div id="register" class="tab-content active">
+            <h2>Create Your Account</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Create Account</button>
+            </form>
+        </div>
+        <div id="login" class="tab-content">
+            <h2>Log In</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit">Log In</button>
+            </form>
+        </div>
+        <div class="back-link">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';  // Assuming the API is on the same server; adjust if needed, e.g., 'http://localhost:8000'
+        
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (tabId === 'register') {
+                document.querySelector('.tabs .tab:first-child').classList.add('active');
+            } else {
+                document.querySelector('.tabs .tab:last-child').classList.add('active');
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(API_BASE + '/user/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })  // Assuming UserCreate has these fields
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    alert('Account created successfully! User ID: ' + data.id);  // Assuming UserOut has id
+                    // Optionally switch to login or redirect
+                } else {
+                    alert('Error creating account: ' + response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error');
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(API_BASE + '/user/log_in', {  // Assuming the endpoint is POST /user/login (corrected from the provided code)
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })  // Assuming LoginRequest has these
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);  // Assuming LoginResponse has token
+                    alert('Logged in successfully!');
+                    // Redirect to dashboard or next page
+                    // window.location.href = 'dashboard.html';
+                } else {
+                    alert('Login failed: ' + response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error');
+            }
+        });
+    </script>
+</body>
+</html>

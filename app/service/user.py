@@ -3,9 +3,10 @@ import jwt
 import datetime
 
 from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException
 
+from app.errors import AuthenticationError, ForbiddenError, NotFoundError
 from app.dto.user import UserDTO
+from app.schemas.user_profile import UserProfileResponse
 from config import settings
 from app.repository.token import TokenRepository
 from app.repository.user import UserRepository
@@ -35,7 +36,7 @@ class TokenService:
         payload = await self.token_repository.check_token(token)
         if payload:
             return payload
-        raise HTTPException(status_code=403, detail="Forbidden. Login failed.")
+        raise ForbiddenError("Forbidden. Login failed.")
 
 class UserService:
     def __init__(self, user_repository: UserRepository, token_service: TokenService):
@@ -52,16 +53,16 @@ class UserService:
     async def delete_user(self, user_id: int) -> None:
         deleted = await self.user_repository.delete_user(user_id)
         if not deleted:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise NotFoundError("User not found")
 
     async def log_in(self, user_email: str, user_password: str):
         #Todo: add user data validation
         user = await self.user_repository.log_in(user_email)
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise NotFoundError("User not found")
         sha256_password = sha256(user_password.encode()).hexdigest()
         if sha256_password != user.password:
-            raise HTTPException(status_code=401, detail="Incorrect password")
+            raise AuthenticationError("Incorrect password")
         user_dto = UserDTO.model_validate(user)
         access_token = await self.token_service.create_access_token(user_dto, data={"sub": user.id})
         refresh_token =  await self.token_service.create_refresh_token(user_dto, data={"sub": user.id})

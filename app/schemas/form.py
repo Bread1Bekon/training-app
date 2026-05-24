@@ -20,3 +20,6 @@ class FormOut(BaseModel):
     skills: list[SkillOut] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+class ScoredFormOut(FormOut):
+    score: float

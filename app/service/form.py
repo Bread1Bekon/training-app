@@ -1,6 +1,6 @@
 import json
 
-from fastapi import HTTPException
+from app.errors import ForbiddenError
 from sqlalchemy.testing.pickleable import User
 
 from app.dto.form import FormDTO
@@ -11,7 +11,7 @@ from app.redis_db import redis_db
 from app.repository.form import FormRepository
 from app.repository.form import SkillRepository
 from app.repository.token import SECONDS_IN_DAY
-from app.schemas.form import FormCreate, FormOut, ScoredForm
+from app.schemas.form import FormCreate, FormOut, ScoredForm, ScoredFormOut
 from app.schemas.skill import SkillOut
 
 
@@ -40,26 +40,54 @@ class FormService:
 
     async def update_form_status(self, form_id, new_form_status, current_user):
         if current_user.access_level != UserType.MODERATOR:
-            raise HTTPException(status_code=403, detail="Forbidden. You don't have access to this action.")
+            raise ForbiddenError("Forbidden. You don't have access to this action.")
 
         form = await self.form_repository.update_form_status(form_id, new_form_status)
 
         return form
 
-    async def find_suitable_forms(self, user_id: int) -> list[ScoredForm]:
+    async def find_suitable_forms(self, user_id: int) -> list[ScoredFormOut]:
         form = await self.form_repository.get_form_by_id(user_id)
+        if not form:
+            return []
         skills = await self.skill_repository.get_skills_by_form(form)
         suitable_forms = await self.skill_repository.get_suitable_forms(skills, user_id)
 
-        if suitable_forms:
-            await redis_db.setex(
-                user_id,
-                SECONDS_IN_DAY,
-                json.dumps([form.model_dump() for form in suitable_forms]),
-            )
+        if not suitable_forms:
+            return []
 
-        return suitable_forms
+        form_ids = [sf.form_id for sf in suitable_forms]
+        forms_db = await self.form_repository.get_forms_by_ids(form_ids)
+        forms_map = {f.id: f for f in forms_db}
+
+        scored_forms_out = []
+        for sf in suitable_forms:
+            f = forms_map.get(sf.form_id)
+            if f:
+                scored_forms_out.append(
+                    ScoredFormOut(
+                        id=f.id,
+                        description=f.description,
+                        user_id=f.user_id,
+                        status=f.status,
+                        skills=[SkillOut.model_validate(s) for s in f.skills],
+                        score=sf.score
+                    )
+                )
+
+        scored_forms_out.sort(key=lambda x: x.score, reverse=True)
+
+        await redis_db.setex(
+            user_id,
+            SECONDS_IN_DAY,
+            json.dumps([item.model_dump() for item in scored_forms_out]),
+        )
+
+        return scored_forms_out
 
     async def reject_form(self, user_id: int, rejected_form_id: int):
         await self.form_repository.add_rejected_to_db(user_id, rejected_form_id)
         await self.form_repository.reject_form(user_id, rejected_form_id)
+
+    async def get_form_by_id(self, user_id: int) -> FormDTO:
+        return await self.form_repository.get_form_by_id(user_id)

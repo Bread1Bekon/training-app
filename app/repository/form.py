@@ -117,7 +117,12 @@ class FormRepository:
         await self.db.commit()
         await self.db.refresh(form)
 
-        return FormDTO.model_validate(form)
+        return FormDTO(
+            id=form.id,
+            description=form.description,
+            user_id=form.user_id,
+            status=form.status,
+        )
 
     async def update_form_status(self, form_id: int, new_form_status) -> FormDTO:
         result = await self.db.execute(select(Form).where(form_id == Form.id))
@@ -150,6 +155,17 @@ class FormRepository:
 
         return FormDTO.model_validate(result.scalar_one_or_none())
 
+    async def get_forms_by_ids(self, form_ids: list[int]) -> list[Form]:
+        if not form_ids:
+            return []
+        query = (
+            select(Form)
+            .where(Form.id.in_(form_ids))
+            .options(selectinload(Form.skills))
+        )
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
     async def reject_form(self, user_id, rejected_form_id):
         bloom_key = f"rejects:{user_id}"
 
@@ -162,3 +178,4 @@ class FormRepository:
         ).on_conflict_do_nothing()
 
         await self.db.execute(stmt)
+        await self.db.commit()
