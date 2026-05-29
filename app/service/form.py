@@ -1,8 +1,8 @@
 import json
 
-from app.errors import ForbiddenError
-from sqlalchemy.testing.pickleable import User
+from app.errors import ForbiddenError, NotFoundError
 
+from sqlalchemy.testing.pickleable import User
 from app.dto.form import FormDTO
 from app.dto.skill import SkillDTO
 from app.dto.user import UserDTO
@@ -43,6 +43,16 @@ class FormService:
             raise ForbiddenError("Forbidden. You don't have access to this action.")
 
         form = await self.form_repository.update_form_status(form_id, new_form_status)
+
+        return form
+
+    async def get_form_for_moderation(self, form_id: int, current_user):
+        if current_user.access_level != UserType.MODERATOR:
+            raise ForbiddenError("Forbidden. You don't have access to this action.")
+
+        form = await self.form_repository.get_form_for_moderation(form_id)
+        if not form:
+            raise NotFoundError("Form not found")
 
         return form
 
