@@ -1,29 +1,35 @@
-import os
-from contextlib import asynccontextmanager
-
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi import WebSocket, WebSocketDisconnect
+from app.websockets import manager
+from app.errors import AppError
+
 from app.api import root_router
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.db import engine
-from app.models.user import Base, UserDB
-
-from app.db import engine
-from app.models.base import Base
-from app.errors import AppError
 
 
 app = FastAPI(debug=True)
 
+
+@app.websocket("/api/ws/{user_id}")
+@app.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    await manager.connect(user_id, websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        manager.disconnect(user_id, websocket)
+    except Exception as e:
+        print(f"WS error for user {user_id}: {e}")
+        manager.disconnect(user_id, websocket)
+
+
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
-
-@app.get("/")
-async def read_root():
-    return {"status": "online", "message": "MentorFlow Backend API is fully active!"}
 
 origins = [
     "http://localhost:3000",
@@ -38,7 +44,7 @@ app.add_middleware(
 )
 
 
-#load_dotenv()
+# load_dotenv()
 # @app.on_event("startup")
 # async def startup_event():
 #     # Создать таблицы, если их нет
@@ -48,5 +54,3 @@ app.add_middleware(
 
 
 app.include_router(root_router)
-
-

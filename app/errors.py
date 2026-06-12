@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class AppError(Exception, ABC):
     def __init__(self, message: str):
         self.message = message

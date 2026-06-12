@@ -4,13 +4,16 @@ from enum import Enum
 from app.enums.form import FormStatus
 from app.schemas.skill import SkillCreate, SkillOut
 
+
 class FormCreate(BaseModel):
     description: str
     skills: list[SkillCreate]
 
-class ScoredForm(BaseModel): #for elasticsearch matchmaking
+
+class ScoredForm(BaseModel):  # for elasticsearch matchmaking
     form_id: int
     score: float
+
 
 class FormOut(BaseModel):
     id: int
@@ -20,6 +23,7 @@ class FormOut(BaseModel):
     skills: list[SkillOut] = []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ScoredFormOut(FormOut):
     score: float

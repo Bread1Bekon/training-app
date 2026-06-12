@@ -5,6 +5,7 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import NotificationListener from "./components/NotificationListener";
 import Landing from "./components/Landing";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
@@ -15,6 +16,7 @@ import Swipe from "./components/Swipe";
 export default function App() {
   return (
     <AuthProvider>
+      <NotificationListener />
       <Router>
         <Routes>
           <Route path="/" element={<Landing />} />

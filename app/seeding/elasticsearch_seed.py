@@ -24,7 +24,9 @@ def create_elasticsearch_index():
     print(f"Created index '{SkillDoc._index._name}' with mappings.")
 
 
-async def index_skills_to_elasticsearch(session: AsyncSession, elasticsearch: AsyncElasticsearch):
+async def index_skills_to_elasticsearch(
+    session: AsyncSession, elasticsearch: AsyncElasticsearch
+):
     client = elasticsearch
     query = select(Skill)
     result = await session.execute(query)
