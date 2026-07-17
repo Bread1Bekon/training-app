@@ -31,6 +31,23 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
 
+  kafka:
+    image: apache/kafka:4.3.0
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kf_data:/usr/share/apache_kafka/data
+    environment:
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT #TODO move kafka-specific vars to .kafka.env
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
   app:
     build: .
     env_file: .env
@@ -45,4 +62,6 @@ volumes:
   es_data:
     driver: local
   pg_data:
+    driver: local
+  kf_data:
     driver: local

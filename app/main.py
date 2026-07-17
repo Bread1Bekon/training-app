@@ -7,7 +7,6 @@ from app.errors import AppError
 from app.api import root_router
 from fastapi.middleware.cors import CORSMiddleware
 
-
 app = FastAPI(debug=True)
 
 
@@ -30,6 +29,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+
 
 origins = [
     "http://localhost:3000",

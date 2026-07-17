@@ -41,13 +41,14 @@ async def log_in(
 ):
     return await user_service.log_in(str(data.email), data.password)
 
+
 @user_router.get("/{user_id}", response_model=UserProfileResponse, status_code=200)
 async def profile_info(
     user_id: int,
     current_user: UserDTO = Depends(get_current_user),
     user_service: UserService = Depends(get_user_service),
-    form_service: FormService = Depends(get_form_service)
+    form_service: FormService = Depends(get_form_service),
 ):
     user = await user_service.get_user_by_id(user_id)
     form = await form_service.get_form_by_id(user_id)
-    return UserProfileResponse(user = user, form = form)
+    return UserProfileResponse(user=user, form=form)

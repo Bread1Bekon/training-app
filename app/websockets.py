@@ -1,6 +1,7 @@
 from typing import Dict, List
 from fastapi import WebSocket, WebSocketDisconnect
 
+
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[int, List[WebSocket]] = {}
@@ -43,5 +44,6 @@ class ConnectionManager:
                     dead_sockets.append(connection)
             for connection in dead_sockets:
                 self.disconnect(user_id, connection)
+
 
 manager = ConnectionManager()

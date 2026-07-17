@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     ELASTICSEARCH_PASSWORD: str
     ELASTICSEARCH_URL: str
 
+    #kafka
+    KAFKA_BOOTSTRAP_SERVERS: str
+
     # Security
     PRIVATE_KEY: str
     PUBLIC_KEY: str = Field(alias="PUBLIC_KEY")

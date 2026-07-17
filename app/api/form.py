@@ -26,10 +26,9 @@ async def update_form_status(
     new_form_status: ModFormStatus,
     current_user: UserDTO = Depends(get_current_user),
     form_service: FormService = Depends(get_form_service),
+    message: str | None = None,
 ):
-    updated_form = await form_service.update_form_status(
-        form_id, new_form_status, current_user=current_user
-    )
+    updated_form = await form_service.update_form_status(form_id, new_form_status, current_user, message)
     return updated_form
 
 

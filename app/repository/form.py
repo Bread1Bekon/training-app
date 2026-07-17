@@ -142,8 +142,8 @@ class FormRepository:
             description=form.description,
             user_id=form.user_id,
             status=form.status,
-            skills=[]
-          )
+            skills=[],
+        )
 
     async def delete_existing_form(self, user_id: int):
         result = await self.db.execute(select(Form).where(user_id == Form.user_id))

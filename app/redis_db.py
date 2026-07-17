@@ -3,7 +3,6 @@ from redis import asyncio as aioredis
 import json
 from functools import wraps
 
-
 redis_db = aioredis.Redis(
     host=settings.REDIS_HOST,
     port=settings.REDIS_PORT,
@@ -33,7 +32,13 @@ def cache_decorator(expire: int = 86400):
                 if isinstance(val, (list, tuple, set)):
                     return "[" + ",".join(get_stable_repr(item) for item in val) + "]"
                 if isinstance(val, dict):
-                    return "{" + ",".join(f"{k}:{get_stable_repr(v)}" for k, v in sorted(val.items())) + "}"
+                    return (
+                        "{"
+                        + ",".join(
+                            f"{k}:{get_stable_repr(v)}" for k, v in sorted(val.items())
+                        )
+                        + "}"
+                    )
 
                 val_repr = repr(val)
                 if "object at" in val_repr or "0x" in val_repr:
@@ -63,6 +68,7 @@ def cache_decorator(expire: int = 86400):
 
             if result is not None:
                 try:
+
                     def make_serializable(data):
                         if isinstance(data, list):
                             return [make_serializable(item) for item in data]
@@ -75,7 +81,9 @@ def cache_decorator(expire: int = 86400):
                         return data
 
                     serialized_result = make_serializable(result)
-                    await redis_db.setex(cache_key, expire, json.dumps(serialized_result))
+                    await redis_db.setex(
+                        cache_key, expire, json.dumps(serialized_result)
+                    )
                 except Exception as e:
                     print(f"Redis set cache failed: {e}")
 

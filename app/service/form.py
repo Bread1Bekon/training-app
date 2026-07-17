@@ -1,25 +1,24 @@
 import json
 
+from app.events.form_status_update import FormStatusUpdateEvent, FormStatusUpdateData
 from app.errors import ForbiddenError
-from sqlalchemy.testing.pickleable import User
 
 from app.dto.form import FormDTO
-from app.dto.skill import SkillDTO
+from app.producers.form_producer import FormProducer
 from app.dto.user import UserDTO
 from app.enums.user import UserType
 from app.redis_db import redis_db
 from app.repository.form import FormRepository
 from app.repository.form import SkillRepository
 from app.repository.token import SECONDS_IN_DAY
-from app.schemas.form import FormCreate, FormOut, ScoredForm, ScoredFormOut
+from app.schemas.form import FormCreate, FormOut, ScoredFormOut
 from app.schemas.skill import SkillOut
 
 
 class FormService:
-    def __init__(
-        self, form_repository: FormRepository, skill_repository: SkillRepository
-    ):
+    def __init__(self, form_repository: FormRepository, skill_repository: SkillRepository, form_producer: FormProducer):
         self.form_repository = form_repository
+        self.form_producer = form_producer
         self.skill_repository = skill_repository
 
     async def create_form(self, user: UserDTO, form_data: FormCreate) -> FormOut:
@@ -42,22 +41,22 @@ class FormService:
             skills=[SkillOut.model_validate(i) for i in created_skills],
         )
 
-    async def update_form_status(self, form_id, new_form_status, current_user):
+    async def update_form_status(self, form_id: int, new_form_status, current_user, moder_message: str):
         if current_user.access_level != UserType.MODERATOR:
             raise ForbiddenError("Forbidden. You don't have access to this action.")
 
         form = await self.form_repository.update_form_status(form_id, new_form_status)
 
-        try:
-            from app.websockets import manager
-            await manager.send_personal_message({
-                "type": "form_status_update",
-                "form_id": form_id,
-                "status": new_form_status,
-                "message": f"Your form was {new_form_status} by moderator {current_user.name}."
-            }, form.user_id)
-        except Exception as ws_err:
-            print(f"Error sending WebSocket notification: {ws_err}")
+        event_data = FormStatusUpdateData(
+            formid=form_id,
+            status=new_form_status,
+            userid=form.user_id,
+            message=moder_message
+        )
+
+        event = FormStatusUpdateEvent(data=event_data)
+
+        self.form_producer.publish("status_updated", event) #uproot key to const
 
         return form
 
@@ -100,6 +99,7 @@ class FormService:
 
         return scored_forms_out
 
+    #legacy? delete
     async def reject_form(self, user_id: int, rejected_form_id: int):
         await self.form_repository.add_rejected_to_db(user_id, rejected_form_id)
         await self.form_repository.reject_form(user_id, rejected_form_id)
