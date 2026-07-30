@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from elasticsearch import AsyncElasticsearch
 
 from .form import FormRepository, SkillRepository
+from .profile import ProfileRepository
 from .token import TokenRepository
 from .user import UserRepository
 
@@ -18,6 +19,11 @@ def get_token_repository():
 
 def get_form_repository(db: AsyncSession):
     repository = FormRepository(db)
+    return repository
+
+
+def get_profile_repository(db: AsyncSession):
+    repository = ProfileRepository(db)
     return repository
 
 

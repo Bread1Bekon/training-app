@@ -1,7 +1,7 @@
 import json
 
 from app.events.form_status_update import FormStatusUpdateEvent, FormStatusUpdateData
-from app.errors import ForbiddenError
+from app.errors import ForbiddenError, NotFoundError
 
 from app.dto.form import FormDTO
 from app.producers.form_producer import FormProducer
@@ -56,7 +56,17 @@ class FormService:
 
         event = FormStatusUpdateEvent(data=event_data)
 
-        self.form_producer.publish("status_updated", event) #uproot key to const
+        self.form_producer.publish("status_updated", event)
+
+        return form
+
+    async def get_form_for_moderation(self, form_id: int, current_user):
+        if current_user.access_level != UserType.MODERATOR:
+            raise ForbiddenError("Forbidden. You don't have access to this action.")
+
+        form = await self.form_repository.get_form_for_moderation(form_id)
+        if not form:
+            raise NotFoundError("Form not found")
 
         return form
 

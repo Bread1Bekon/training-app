@@ -13,6 +13,7 @@ from app.redis_db import redis_db
 
 from app.dto.form import FormDTO
 from app.dto.skill import SkillDTO
+from app.enums.form import FormStatus
 from app.enums.skill import SkillType
 from app.models.form import Form, RejectedForm
 from app.models.skill import Skill
@@ -144,6 +145,22 @@ class FormRepository:
             status=form.status,
             skills=[],
         )
+
+    async def get_form_for_moderation(self, form_id: int) -> FormDTO:
+        query = (
+            select(Form)
+            .where(form_id == Form.id)
+            .options(selectinload(Form.skills))
+        )
+        result = await self.db.execute(query)
+        form = result.scalar_one_or_none()
+
+        if form and form.status == FormStatus.PENDING:
+            form.status = FormStatus.IN_MODERATION
+            await self.db.commit()
+            await self.db.refresh(form)
+
+        return FormDTO.model_validate(form)
 
     async def delete_existing_form(self, user_id: int):
         result = await self.db.execute(select(Form).where(user_id == Form.user_id))

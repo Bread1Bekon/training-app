@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 
 from app.enums.user import UserType
 
@@ -8,6 +8,20 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     access_level: UserType = UserType.ORDINARY
+
+    @field_validator("email")
+    def normalize_email(cls, email: EmailStr) -> str:
+        return str(email).lower()
+
+
+class UserUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
 
 
 class UserOut(BaseModel):

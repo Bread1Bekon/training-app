@@ -10,13 +10,16 @@ from ..repository.dependencies import (
     get_token_repository,
     get_form_repository,
     get_skill_repository,
+    get_profile_repository,
 )
 from ..db import get_db
+from ..utils import SHA256HashService
 
 
 def get_user_service(db: AsyncSession = Depends(get_db)):
     user_repository = get_user_repository(db)
-    service = UserService(user_repository, get_token_service())
+    profile_repository = get_profile_repository(db)
+    service = UserService(user_repository, get_token_service(), profile_repository, SHA256HashService())
     return service
 
 
